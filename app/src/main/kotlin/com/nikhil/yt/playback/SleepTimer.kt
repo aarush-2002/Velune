@@ -47,6 +47,10 @@ class SleepTimer(
         }
     }
 
+    fun togglePauseWhenSongEnd() {
+        pauseWhenSongEnd = !pauseWhenSongEnd
+    }
+
     fun clear() {
         sleepTimerJob?.cancel()
         sleepTimerJob = null

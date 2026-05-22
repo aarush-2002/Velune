@@ -98,6 +98,12 @@
     <string name="player_design_v4">Cinematic</string>
     <string name="player_design_v5">Metro</string>
     <string name="new_mini_player_design">New mini player design</string>
+    <string name="shake_to_skip">Shake to skip</string>
+    <string name="shake_to_skip_desc">Shake your phone to skip to the next track</string>
+    <string name="vibrate_on_track_change">Vibrate on track change</string>
+    <string name="vibrate_on_track_change_desc">Vibrate when a new track starts playing</string>
+    <string name="shaken_to_skip">Shaken to skip!</string>
+    <string name="stop_after_current_track">Stop after current track</string>
     <string name="player_background_blur">Blur</string>
     <string name="coloring">Coloring</string>
     <string name="blur_gradient">Blur Gradient</string>

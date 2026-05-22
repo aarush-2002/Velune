@@ -60,6 +60,7 @@ import com.nikhil.yt.constants.AudioCrossfadeDurationKey
 import com.nikhil.yt.constants.PlayerStreamClient
 import com.nikhil.yt.constants.PlayerStreamClientKey
 import com.nikhil.yt.constants.SeekExtraSeconds
+import com.nikhil.yt.constants.ShakeToSkipKey
 import com.nikhil.yt.ui.component.ArtistSeparatorsDialog
 import com.nikhil.yt.ui.component.TagsManagementDialog
 import com.nikhil.yt.ui.component.EnumListPreference
@@ -137,6 +138,14 @@ fun PlayerSettings(
     )
     val (stopMusicOnTaskClear, onStopMusicOnTaskClearChange) = rememberPreference(
         StopMusicOnTaskClearKey,
+        defaultValue = false
+    )
+    val (shakeToSkip, onShakeToSkipChange) = rememberPreference(
+        ShakeToSkipKey,
+        defaultValue = false
+    )
+    val (vibrateOnTrackChange, onVibrateOnTrackChangeChange) = rememberPreference(
+        VibrateOnTrackChangeKey,
         defaultValue = false
     )
     val (historyDuration, onHistoryDurationChange) = rememberPreference(
@@ -392,6 +401,22 @@ fun PlayerSettings(
             icon = { Icon(painterResource(R.drawable.clear_all), null) },
             checked = stopMusicOnTaskClear,
             onCheckedChange = onStopMusicOnTaskClearChange
+        )
+
+        SwitchPreference(
+            title = { Text(stringResource(R.string.shake_to_skip)) },
+            description = stringResource(R.string.shake_to_skip_desc),
+            icon = { Icon(painterResource(R.drawable.vibration), null) },
+            checked = shakeToSkip,
+            onCheckedChange = onShakeToSkipChange
+        )
+
+        SwitchPreference(
+            title = { Text(stringResource(R.string.vibrate_on_track_change)) },
+            description = stringResource(R.string.vibrate_on_track_change_desc),
+            icon = { Icon(painterResource(R.drawable.vibration), null) },
+            checked = vibrateOnTrackChange,
+            onCheckedChange = onVibrateOnTrackChangeChange
         )
 
         PreferenceEntry(

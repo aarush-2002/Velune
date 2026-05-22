@@ -697,6 +697,29 @@ fun PlayerMenu(
                             modifier = Modifier.clickable { showPitchTempoDialog = true },
                             colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                         )
+
+                        HorizontalDivider(
+                            modifier = Modifier.padding(start = 56.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant,
+                        )
+
+                        ListItem(
+                            headlineContent = { Text(text = stringResource(R.string.stop_after_current_track)) },
+                            leadingContent = {
+                                Icon(
+                                    painter = painterResource(R.drawable.timer),
+                                    contentDescription = null,
+                                )
+                            },
+                            trailingContent = {
+                                Switch(
+                                    checked = playerConnection.service.sleepTimer.pauseWhenSongEnd,
+                                    onCheckedChange = { playerConnection.service.sleepTimer.togglePauseWhenSongEnd() },
+                                )
+                            },
+                            modifier = Modifier.clickable { playerConnection.service.sleepTimer.togglePauseWhenSongEnd() },
+                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        )
                     }
                 }
             }

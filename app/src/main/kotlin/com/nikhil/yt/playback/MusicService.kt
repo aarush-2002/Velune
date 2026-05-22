@@ -35,7 +35,10 @@ import android.media.audiofx.Virtualizer
 import android.net.ConnectivityManager
 import android.os.Binder
 import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.widget.Toast
+import com.nikhil.yt.playback.ShakeDetector
 import androidx.core.app.NotificationCompat
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
@@ -130,6 +133,7 @@ import com.nikhil.yt.constants.ScrobbleDelaySecondsKey
 import com.nikhil.yt.constants.ScrobbleMinSongDurationKey
 import com.nikhil.yt.constants.ShowLyricsKey
 import com.nikhil.yt.constants.SkipSilenceKey
+import com.nikhil.yt.constants.VibrateOnTrackChangeKey
 import com.nikhil.yt.constants.SmartTrimmerKey
 import com.nikhil.yt.constants.StopMusicOnTaskClearKey
 import com.nikhil.yt.constants.TogetherClientIdKey
@@ -243,6 +247,8 @@ class MusicService :
     lateinit var mediaLibrarySessionCallback: MediaLibrarySessionCallback
 
     private lateinit var audioManager: AudioManager
+    private lateinit var sensorManager: SensorManager
+    private var shakeDetector: ShakeDetector? = null
     private var audioFocusRequest: AudioFocusRequest? = null
     private var lastAudioFocusState = AudioManager.AUDIOFOCUS_NONE
     private var wasPlayingBeforeAudioFocusLoss = false
@@ -555,7 +561,26 @@ class MusicService :
                 }
 
         audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         setupAudioFocusRequest()
+
+        dataStore.data
+            .map { it[ShakeToSkipKey] ?: false }
+            .distinctUntilChanged()
+            .collectLatest(scope) { enabled ->
+                if (enabled) {
+                    registerShakeDetector()
+                } else {
+                    unregisterShakeDetector()
+                }
+            }
+
+        dataStore.data
+            .map { it[VibrateOnTrackChangeKey] ?: false }
+            .distinctUntilChanged()
+            .collectLatest(scope) {
+                vibrateOnTrackChange = it
+            }
 
         mediaLibrarySessionCallback.apply {
             toggleLike = ::toggleLike
@@ -954,6 +979,41 @@ class MusicService :
                     saveQueueToDisk()
                 }
             }
+        }
+    }
+
+    private fun registerShakeDetector() {
+        if (shakeDetector == null) {
+            shakeDetector = ShakeDetector {
+                if (player.hasNextMediaItem()) {
+                    player.seekToNext()
+                    player.prepare()
+                    player.play()
+
+                    val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        vibrator.vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE))
+                    } else {
+                        @Suppress("DEPRECATION")
+                        vibrator.vibrate(100)
+                    }
+
+                    scope.launch(SilentHandler) {
+                        Toast.makeText(this@MusicService, getString(R.string.shaken_to_skip), Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
+        sensorManager.registerListener(
+            shakeDetector,
+            sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
+            SensorManager.SENSOR_DELAY_UI
+        )
+    }
+
+    private fun unregisterShakeDetector() {
+        shakeDetector?.let {
+            sensorManager.unregisterListener(it)
         }
     }
 
@@ -3421,6 +3481,16 @@ class MusicService :
 
     val timelineEmpty = player.currentTimeline.isEmpty || player.mediaItemCount == 0 || player.currentMediaItem == null
     currentMediaMetadata.value = if (timelineEmpty) null else (mediaItem?.metadata ?: player.currentMetadata)
+
+    if (vibrateOnTrackChange && !timelineEmpty && reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO) {
+        val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            vibrator.vibrate(VibrationEffect.createOneShot(50, VibrationEffect.DEFAULT_AMPLITUDE))
+        } else {
+            @Suppress("DEPRECATION")
+            vibrator.vibrate(50)
+        }
+    }
 
     scrobbleManager?.onSongStop()
 

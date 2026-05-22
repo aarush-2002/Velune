@@ -38,6 +38,8 @@ val SeekExtraSeconds = booleanPreferencesKey("seekExtraSeconds")
 val DisableBlurKey = booleanPreferencesKey("disableBlur")
 val GlassNavigationBarKey = booleanPreferencesKey("glassNavigationBar")
 val GlassMiniPlayerKey = booleanPreferencesKey("glassMiniPlayer")
+val ShakeToSkipKey = booleanPreferencesKey("shakeToSkip")
+val VibrateOnTrackChangeKey = booleanPreferencesKey("vibrateOnTrackChange")
 
 enum class SliderStyle {
     Standard,
